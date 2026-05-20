@@ -1,0 +1,25 @@
+# OpenFOAM Time-Step Directories (Ignore numerical data outputs)
+[0-9]*/
+![0]/
+!0.orig/
+
+# Parallel Processing Folders
+processor*/
+
+# Mesh Generation and Dynamic Files
+constant/polyMesh/
+*.dep
+
+# Standard Execution Log Files
+log.*
+*.log
+
+# Dynamic Link Libraries & Archives
+*.so
+*.o
+*.a
+
+# Local System / IDE configurations
+.DS_Store
+.vscode/
+.idea/
