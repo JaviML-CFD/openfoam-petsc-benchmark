@@ -1,0 +1,66 @@
+#!/bin/sh
+cd "${0%/*}" || exit
+
+# Ensure clean slate graphics folder exists
+mkdir -p FIGS
+
+# =============================================================================
+# PHASE 1: Parse & Plot the Baseline Case
+# =============================================================================
+if [ -f log.simpleFoam_baseline ]; then
+    echo "Processing Baseline Case..."
+    
+    # 1. Clear any old logs folder and let foamLog create a fresh one
+    rm -rf logs
+    foamLog log.simpleFoam_baseline
+    
+    # 2. Extract RAM usage directly into the expected logs folder
+    grep "MemoryOccused =" log.simpleFoam_baseline | awk '{print NR, $3/1024}' > logs/ram_usage_0
+    
+    # 3. Run your unmodified Python script
+    python3 plot_residuals.py
+    
+    # 4. Protect the generated images by renaming them before they get overwritten
+    mv FIGS/fieldResiduals.png FIGS/baseline_residuals.png
+    mv FIGS/fieldIterSol.png   FIGS/baseline_iters.png
+    mv FIGS/executionTime.png  FIGS/baseline_time.png
+    
+    # 5. Save the baseline data folder for the joint plot later
+    mv logs logs_baseline
+fi
+
+# =============================================================================
+# PHASE 2: Parse & Plot the PETSc Case
+# =============================================================================
+if [ -f log.simpleFoam_petsc ]; then
+    echo "Processing PETSc Case..."
+    
+    # 1. Clear old data and let foamLog create a fresh 'logs' folder for PETSc
+    rm -rf logs
+    foamLog log.simpleFoam_petsc
+    
+    # 2. Extract RAM usage into the expected logs folder
+    grep "MemoryOccused =" log.simpleFoam_petsc | awk '{print NR, $3/1024}' > logs/ram_usage_0
+    
+    # 3. Run your unmodified Python script again
+    python3 plot_residuals.py
+    
+    # 4. Protect the PETSc images
+    mv FIGS/fieldResiduals.png FIGS/petsc_residuals.png
+    mv FIGS/fieldIterSol.png   FIGS/petsc_iters.png
+    mv FIGS/executionTime.png  FIGS/petsc_time.png
+    
+    # 5. Save the PETSc data folder for the joint plot
+    mv logs logs_petsc
+fi
+
+# =============================================================================
+# PHASE 3: Generate the Joint Comparison Plots
+# =============================================================================
+if [ -d logs_baseline ] && [ -d logs_petsc ]; then
+    echo "Compiling Joint Methodology Performance Plots..."
+    python3 plot_joint_comparisons.py
+    
+    # Clean up temporary data folders to keep the repository pristine
+    rm -rf logs_baseline logs_petsc
+fi

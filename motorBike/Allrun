@@ -1,54 +1,46 @@
 #!/bin/sh
-cd "${0%/*}" || exit                                # Run from this directory
-. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
-#------------------------------------------------------------------------------
+cd "${0%/*}" || exit   # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions # Tutorial run functions
 
-# Alternative decomposeParDict name:
+# Define the 6-core decomposition dictionary
 decompDict="-decomposeParDict system/decomposeParDict.6"
-## Standard decomposeParDict name:
-# unset decompDict
 
-# copy motorbike surface from resources directory
+# 1. Geometry and Meshing (Only needs to be done once!)
 mkdir -p constant/triSurface
-
-cp -f \
-    "$FOAM_TUTORIALS"/resources/geometry/motorBike.obj.gz \
-    constant/triSurface/
+cp -f "$FOAM_TUTORIALS"/resources/geometry/motorBike.obj.gz constant/triSurface/
 
 runApplication surfaceFeatureExtract
-
 runApplication blockMesh
-
-runApplication $decompDict decomposePar
-
-# Using distributedTriSurfaceMesh?
-if foamDictionary -entry geometry -value system/snappyHexMeshDict | \
-   grep -q distributedTriSurfaceMesh
-then
-    echo "surfaceRedistributePar does not need to be run anymore"
-    echo " - distributedTriSurfaceMesh will do on-the-fly redistribution"
-fi
-
 runParallel $decompDict snappyHexMesh -overwrite
-
 runParallel $decompDict topoSet
 
-#- For non-parallel running: - set the initial fields
-# restore0Dir
-
-#- For parallel running: set the initial fields
+# 2. RUN #1: Native OpenFOAM Baseline
+echo "Starting Run 1: Native OpenFOAM Baseline..."
+cp system/fvSolution.default system/fvSolution
 restore0Dir -processor
-
 runParallel $decompDict patchSummary
-
 runParallel $decompDict potentialFoam -writephi
-
-runParallel $decompDict checkMesh -writeFields '(nonOrthoAngle)' -constant
-
 runParallel $decompDict $(getApplication)
 
+# Save the baseline log safely before it gets overwritten
+mv log.simpleFoam log.simpleFoam_baseline
+echo "Run 1 complete. Log saved as log.simpleFoam_baseline."
+
+# Clean the fields (but KEEP the mesh) for the next run
+rm -rf processor*/[1-9]* processor*/0/uniform
+
+# 3. RUN #2: PETSc Optimized Run
+echo "Starting Run 2: PETSc Dynamic Solver..."
+cp system/fvSolution.petsc system/fvSolution
+restore0Dir -processor
+runParallel $decompDict patchSummary
+runParallel $decompDict potentialFoam -writephi
+runParallel $decompDict $(getApplication)
+
+# Save the PETSc log safely
+mv log.simpleFoam log.simpleFoam_petsc
+echo "Run 2 complete. Log saved as log.simpleFoam_petsc."
+
+# 4. Reconstruct the final time step for visualization
 runApplication reconstructParMesh -constant
-
 runApplication reconstructPar -latestTime
-
-#------------------------------------------------------------------------------

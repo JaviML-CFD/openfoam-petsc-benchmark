@@ -1,4 +1,8 @@
 # Linear Solver Benchmarking: petscFoam vs. Native OpenFOAM
+![Benchmark Topology](thumbnail.png)
+
+
+> ⚠️ **WORK IN PROGRESS:** 
 
 This repository contains a local numerical performance benchmark comparing native OpenFOAM linear solvers against the **PETSc library (`petscFoam`)** framework. Running locally on a consumer-grade laptop via WSL2, this study evaluates solver convergence rates, wall-clock execution speedups, and memory footprint across two standard test cases: **pitzDaily** (2D) and **motorbike** (3D).
 
