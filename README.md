@@ -1,14 +1,4 @@
-Your current `README.md` is incredibly well-written—it's sharp, technically precise, and maps out your benchmarking goals perfectly.
 
-To give it that exact **OpenFOAM HPC Committee vibe**, we need to restructure it to mirror how official HPC benchmarks are presented. They typically treat the repository as a reproducible toolkit, standardizing grid sizes (e.g., Small, Medium, Large) so that performance scaling behaves predictably across different core counts and memory architectures.
-
-Including results directly in the main `README.md` is standard for HPC benchmarks, as it serves as the primary visual hook. I have restructured your README below to include a dedicated **Performance Results & Scaling Analysis** section with placeholder markdown tables and a layout for your scaling plots.
-
-Here is the revised `README.md` prepared for your 400k, 800k, and 1.6M cell grid study, complete with proper attribution to the HPC Committee.
-
----
-
-```markdown
 # Linear Solver Benchmarking: petscFoam vs. Native OpenFOAM
 ![Benchmark Topology](thumbnail.png)
 
@@ -57,7 +47,7 @@ The repository includes shell scripts to automate mesh generation, case decompos
    ```bash
    cd cases/motorbike_small
 
-```
+
 
 2. **Generate Mesh & Run:** Run the automated execution pipeline (ensure `petscFoam.so` is in your `LD_LIBRARY_PATH`):
 ```bash
@@ -129,7 +119,3 @@ The performance metrics focus strictly on core computational efficiency, breakin
 The mesh topologies, background geometry, and underlying solver parameters utilized in this project are derivative works based on the **HPC Motorbike Benchmark Case** developed by the **OpenFOAM Foundation / ESI HPC Committee**.
 
 This benchmarking harness is distributed under the GNU General Public License (GPLv3) to align with OpenFOAM software standards.
-
-```
-
-```
